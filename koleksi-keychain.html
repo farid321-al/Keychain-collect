@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"><title>Koleksi Keychain Laut</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#eef6fb;--card:#fff;--tx:#12324a;--mut:#5d7a90;--ac:#1769d1;--ok:#1a8f4c;--bad:#c62f2f;--bd:#d5e3ee}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1b28;--card:#152a3c;--tx:#e6f1fa;--mut:#8fb0c8;--ac:#5aa2ff;--ok:#4cd08a;--bad:#ff7a7a;--bd:#274056}}
+:root[data-theme="dark"]{--bg:#0d1b28;--card:#152a3c;--tx:#e6f1fa;--mut:#8fb0c8;--ac:#5aa2ff;--ok:#4cd08a;--bad:#ff7a7a;--bd:#274056}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px system-ui,sans-serif;max-width:640px;margin:auto;padding:16px}
+h1{font-size:22px;margin:4px 0}p{color:var(--mut);margin:4px 0 12px}
+.bar{background:var(--bd);border-radius:8px;height:10px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ok);width:0}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:8px;text-align:center;min-height:150px}
+.c img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px}
+.c .ph{aspect-ratio:1;border:2px dashed var(--bd);border-radius:10px;display:grid;place-items:center;font-size:34px;opacity:.5}
+.c b{display:block;margin-top:6px}.c small{color:var(--ok)}
+button,label.btn{background:var(--ac);color:#fff;border:0;border-radius:12px;padding:12px 16px;font:inherit;font-weight:600;cursor:pointer;display:inline-block}
+button.s{background:var(--card);color:var(--tx);border:1px solid var(--bd)}
+input[type=tel]{width:100%;padding:12px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;margin:8px 0}
+.box{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin:12px 0}
+.msg{border-radius:12px;padding:12px;margin:10px 0;display:none}.msg.ok{display:block;background:rgba(26,143,76,.15);border:1px solid var(--ok)}.msg.no{display:block;background:rgba(198,47,47,.15);border:1px solid var(--bad)}.msg.wait{display:block;background:var(--card);border:1px solid var(--bd)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+</style></head><body>
+<h1>🌊 Koleksi Keychain Laut</h1>
+<p>Ketuk 📷 di tiap keychain untuk memotret, lalu kirim screenshot koleksi.</p>
+<div class="bar"><i id="pb"></i></div><p id="pt"></p>
+
+<div class="row">
+
+<button class="s" id="sh">📤 Kirim Screenshot</button>
+</div>
+<div id="m" class="msg"></div>
+<div class="grid" id="g"></div>
+
+<div class="box"><b>Nomor HP tujuan</b>
+<input id="ph" type="tel" placeholder="08123456789">
+<small style="color:var(--mut)">Gambar koleksi dibuat otomatis, lalu dibagikan/diunduh dan WhatsApp dibuka ke nomor ini. Kirim otomatis tanpa server tidak memungkinkan, jadi lampirkan gambarnya di chat.</small></div>
+
+<script>
+const T=[["lumba","Lumba-lumba","🐬"],["paus","Paus","🐳"],["ikan","Ikan","🐠"],["kudalaut","Kuda laut","🦄"],["bintang","Bintang laut","⭐"],["kepiting","Kepiting","🦀"],["hiu","Hiu","🦈"],["penyu","Penyu","🐢"]];
+let D={items:{},hashes:[],phone:""};
+try{D=Object.assign(D,JSON.parse(localStorage.getItem("kc")||"{}"))}catch(e){}
+const $=id=>document.getElementById(id);
+const save=()=>{try{localStorage.setItem("kc",JSON.stringify(D))}catch(e){show("Penyimpanan penuh/tidak tersedia.","no")}};
+function show(t,c){const m=$("m");m.className="msg "+c;m.textContent=t}
+function render(){
+ const n=Object.keys(D.items).length;
+ $("pb").style.width=n/T.length*100+"%";$("pt").textContent=n+" dari "+T.length+" terkumpul";
+ $("g").innerHTML=T.map(([id,nm,em])=>{const it=D.items[id];
+  return `<div class="c">${it?`<img src="${it.img}">`:`<div class="ph">${em}</div>`}<b>${nm}</b><label class="btn" style="padding:6px 12px;margin-top:4px;font-size:14px">📷 ${it?"Ganti":"Foto"}<input type="file" accept="image/*" hidden onchange="upl(this,'${id}')"></label>${it?` <a href="#" onclick="del('${id}');return false" style="color:var(--bad);text-decoration:none">✕</a>`:""}</div>`}).join("");
+ $("ph").value=D.phone||"";
+}
+function shrink(file,max=480){return new Promise((res,rej)=>{const r=new FileReader();
+ r.onerror=()=>rej(new Error("File tidak bisa dibaca"));
+ r.onload=()=>{const i=new Image();
+  i.onload=()=>{const k=Math.min(1,max/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=Math.max(1,Math.round(i.width*k));c.height=Math.max(1,Math.round(i.height*k));c.getContext("2d").drawImage(i,0,0,c.width,c.height);
+   c.toBlob(b=>res({blob:b,url:c.toDataURL("image/jpeg",.7),cv:c}),"image/jpeg",.8)};
+  i.onerror=()=>rej(new Error("Format gambar tidak didukung"));i.src=r.result};
+ r.readAsDataURL(file)})}
+window.upl=async(inp,id)=>{
+ const file=inp.files&&inp.files[0];if(!file)return;
+ try{const p=await shrink(file);D.items[id]={img:p.url};save();render();show("✅ Foto "+T.find(t=>t[0]===id)[1]+" ditambahkan.","ok")}
+ catch(err){show("Foto gagal dibaca: "+err.message,"no")}};
+window.del=id=>{if(confirm("Hapus dari koleksi?")){delete D.items[id];save();render()}};
+async function card(){
+ const W=960,cw=220,ch=250,c=document.createElement("canvas");c.width=W;c.height=640;const x=c.getContext("2d");
+ x.fillStyle="#eef6fb";x.fillRect(0,0,W,640);x.fillStyle="#12324a";x.font="bold 34px sans-serif";x.fillText("🌊 Koleksi Keychain Laut — "+Object.keys(D.items).length+"/"+T.length,30,55);
+ for(let i=0;i<T.length;i++){const [id,nm]=T[i],X=30+(i%4)*(cw+15),Y=85+Math.floor(i/4)*(ch+30),it=D.items[id];
+  x.fillStyle="#fff";x.fillRect(X,Y,cw,ch);
+  if(it){await new Promise(r=>{const im=new Image();im.onload=()=>{x.drawImage(im,X+8,Y+8,cw-16,cw-16);r()};im.src=it.img})}
+  else{x.fillStyle="#b9cbd9";x.font="60px sans-serif";x.fillText("?",X+cw/2-16,Y+cw/2+15)}
+  x.fillStyle="#12324a";x.font="bold 20px sans-serif";x.fillText(nm,X+10,Y+cw+12);
+}
+ return new Promise(r=>c.toBlob(r,"image/png"))}
+
+$("sh").onclick=async()=>{
+ let num=$("ph").value.replace(/\D/g,"");if(!num)return show("Isi nomor HP tujuan dulu.","no");
+ if(num.startsWith("0"))num="62"+num.slice(1);D.phone=$("ph").value;save();
+ if(!Object.keys(D.items).length)return show("Koleksi masih kosong.","no");
+ show("Membuat screenshot…","wait");
+ const blob=await card(),file=new File([blob],"koleksi-keychain.png",{type:"image/png"});
+ let done=false;
+ try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:"Koleksi keychain laut saya"});done=true}}catch(e){}
+ if(!done){try{const d=await claude.use("downloads");if(d){const b64=await new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result.split(",")[1]);f.readAsDataURL(blob)});await d.save({filename:"koleksi-keychain.png",data:b64});done=true}}catch(e){}}
+ const link="https://wa.me/"+num+"?text="+encodeURIComponent("Koleksi keychain laut saya: "+Object.keys(D.items).length+"/"+T.length+" terkumpul ");
+ show(done?"Gambar siap. Ketuk tombol di bawah untuk membuka WhatsApp, lalu lampirkan gambarnya.":"Gagal membuat file gambar; kirim pesan teks saja.","ok");
+ const a=document.createElement("a");a.href=link;a.target="_blank";a.rel="noopener";a.textContent=" 💬 Buka WhatsApp";a.style.cssText="color:var(--ac);font-weight:700;display:block;margin-top:6px";$("m").appendChild(a);
+};
+render();
+</script></body></html>
